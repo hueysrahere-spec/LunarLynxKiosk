@@ -843,7 +843,7 @@ footer{text-align:center;padding:25px 0 35px;color:var(--muted);font-family:Cinz
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  // Google Calendar Booking Modal Logic (Live Inline Embed URL Active)
+  // Google Calendar Booking Modal Logic
   const LIVE_GOOGLE_CALENDAR_URL = "https://calendar.google.com/calendar/appointments/schedules/AcZssZ1YL91tFyU3Sg0gbZgshrZjwY7IboJBRNggWyPMYsOogsaONqWXIeHVBwNEtq5jgxBdSYXA_9Nj?gv=true";
 
   function openBooking(spreadName, price) {
@@ -862,7 +862,6 @@ footer{text-align:center;padding:25px 0 35px;color:var(--muted);font-family:Cinz
     resetKioskTimer();
   }
 
-  // Close modal if tapping outside the box
   window.addEventListener('click', (e) => {
     const modal = document.getElementById('booking-modal');
     if (e.target === modal) {
@@ -878,51 +877,65 @@ footer{text-align:center;padding:25px 0 35px;color:var(--muted);font-family:Cinz
   function startSlideshow() {
     if (slideInterval) clearInterval(slideInterval);
     slideInterval = setInterval(() => {
-      slides[currentSlide].classList.remove('active');
-      currentSlide = (currentSlide + 1) % slides.length;
-      slides[currentSlide].classList.add('active');
-    }, 5000);
+      if (slides.length > 0) {
+        slides[currentSlide].classList.remove('active');
+        currentSlide = (currentSlide + 1) % slides.length;
+        slides[currentSlide].classList.add('active');
+      }
+    }, 4000);
   }
 
   function stopSlideshow() {
-    clearInterval(slideInterval);
+    if (slideInterval) {
+      clearInterval(slideInterval);
+      slideInterval = null;
+    }
   }
 
-  // Kiosk Attractor & Inactivity Timer Logic (Robust iPad Event Binding)
+  // Kiosk Attractor & Auto-Lock Inactivity Timer (60s Limit)
   let inactivityTimer = null;
   const INACTIVITY_LIMIT = 60000; 
 
   function dismissAttractor() {
-    document.getElementById('kiosk-attractor').classList.add('hidden');
+    const attractor = document.getElementById('kiosk-attractor');
+    attractor.classList.add('hidden');
+    attractor.style.display = 'none'; // Hard toggle for iPadOS Safari
     stopSlideshow();
     resetKioskTimer();
   }
 
   function returnToAttractor() {
-    document.getElementById('kiosk-attractor').classList.remove('hidden');
+    const attractor = document.getElementById('kiosk-attractor');
+    attractor.style.display = 'flex';
+    setTimeout(() => {
+      attractor.classList.remove('hidden');
+    }, 20);
+
     switchTab('apparel');
     closeBooking();
     startSlideshow();
-    clearTimeout(inactivityTimer);
+    if (inactivityTimer) clearTimeout(inactivityTimer);
   }
 
   function resetKioskTimer() {
-    clearTimeout(inactivityTimer);
-    const attractor = document.getElementById('kiosk-attractor');
+    if (inactivityTimer) clearTimeout(inactivityTimer);
     
-    if (attractor.classList.contains('hidden')) {
+    const attractor = document.getElementById('kiosk-attractor');
+    if (attractor.classList.contains('hidden') || attractor.style.display === 'none') {
       inactivityTimer = setTimeout(() => {
         returnToAttractor();
       }, INACTIVITY_LIMIT);
     }
   }
 
-  // Global touch/pointer listener bindings for iPadOS Safari
-  ['touchstart', 'touchend', 'click', 'mousemove', 'scroll'].forEach(evtName => {
-    window.addEventListener(evtName, resetKioskTimer, { passive: true });
+  // Safari touch event listeners
+  ['touchstart', 'click'].forEach(evt => {
+    document.addEventListener(evt, () => {
+      resetKioskTimer();
+    }, { passive: true });
   });
 
-  // Initialize Slideshow on Load
+  // Start initial slideshow on page load
   startSlideshow();
 
   // Interactive Particle Canvas Background
