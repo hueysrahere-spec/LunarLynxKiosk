@@ -461,7 +461,7 @@ footer{text-align:center;padding:25px 0 35px;color:var(--muted);font-family:Cinz
 </style>
 </head>
 
-<body onclick="resetKioskTimer()" ontouchstart="resetKioskTimer()" onmousemove="resetKioskTimer()">
+<body>
 
 <!-- ==================== CLEAN ATTRACTOR SLIDESHOW ==================== -->
 <div id="kiosk-attractor" onclick="dismissAttractor()">
@@ -676,45 +676,22 @@ footer{text-align:center;padding:25px 0 35px;color:var(--muted);font-family:Cinz
       <div class="collection-grid">
         <!-- Totem Item 1 -->
         <div class="product-card">
-          <div class="product-img-wrapper" style="display:flex; align-items:center; justify-content:center; background: radial-gradient(circle, var(--plum), var(--panel2));">
-            <span style="font-size: 50px;">🔮</span>
-          </div>
+          <div class="product-img-wrapper"><img src="Totem001.png" alt="Totem Pendant 1"></div>
           <div class="product-tag">TOTEM 001</div>
-          <div class="product-title">RAW AMETHYST WIRE WRAP</div>
-          <div class="product-desc">Intuition & clarity talisman hand-wrapped in antiqued wire.</div>
           <button class="button" onclick="switchTab('contact')">INQUIRE AT TABLE →</button>
         </div>
 
         <!-- Totem Item 2 -->
         <div class="product-card">
-          <div class="product-img-wrapper" style="display:flex; align-items:center; justify-content:center; background: radial-gradient(circle, var(--plum), var(--panel2));">
-            <span style="font-size: 50px;">✨</span>
-          </div>
+          <div class="product-img-wrapper"><img src="Totem002.png" alt="Totem Pendant 2"></div>
           <div class="product-tag">TOTEM 002</div>
-          <div class="product-title">CLEAR QUARTZ POINT PENDANT</div>
-          <div class="product-desc">Master amplifier crystal charged under full moon energy.</div>
           <button class="button" onclick="switchTab('contact')">INQUIRE AT TABLE →</button>
         </div>
 
         <!-- Totem Item 3 -->
         <div class="product-card">
-          <div class="product-img-wrapper" style="display:flex; align-items:center; justify-content:center; background: radial-gradient(circle, var(--plum), var(--panel2));">
-            <span style="font-size: 50px;">🌙</span>
-          </div>
+          <div class="product-img-wrapper"><img src="Totem003.png" alt="Totem Pendant 3"></div>
           <div class="product-tag">TOTEM 003</div>
-          <div class="product-title">LABRADORITE COSMIC TALISMAN</div>
-          <div class="product-desc">Flashy gemstone pendant for protection and mystical aura.</div>
-          <button class="button" onclick="switchTab('contact')">INQUIRE AT TABLE →</button>
-        </div>
-
-        <!-- Totem Item 4 -->
-        <div class="product-card">
-          <div class="product-img-wrapper" style="display:flex; align-items:center; justify-content:center; background: radial-gradient(circle, var(--plum), var(--panel2));">
-            <span style="font-size: 50px;">💎</span>
-          </div>
-          <div class="product-tag">TOTEM 004</div>
-          <div class="product-title">BESPOKE STONE WRAP</div>
-          <div class="product-desc">Custom wrapped personal gemstone talisman tailored to your energy.</div>
           <button class="button" onclick="switchTab('contact')">INQUIRE AT TABLE →</button>
         </div>
       </div>
@@ -911,7 +888,7 @@ footer{text-align:center;padding:25px 0 35px;color:var(--muted);font-family:Cinz
     clearInterval(slideInterval);
   }
 
-  // Kiosk Attractor & Inactivity Timer Logic (60s Timeout)
+  // Kiosk Attractor & Inactivity Timer Logic (Robust iPad Event Binding)
   let inactivityTimer = null;
   const INACTIVITY_LIMIT = 60000; 
 
@@ -939,6 +916,11 @@ footer{text-align:center;padding:25px 0 35px;color:var(--muted);font-family:Cinz
       }, INACTIVITY_LIMIT);
     }
   }
+
+  // Global touch/pointer listener bindings for iPadOS Safari
+  ['touchstart', 'touchend', 'click', 'mousemove', 'scroll'].forEach(evtName => {
+    window.addEventListener(evtName, resetKioskTimer, { passive: true });
+  });
 
   // Initialize Slideshow on Load
   startSlideshow();
@@ -1061,7 +1043,7 @@ footer{text-align:center;padding:25px 0 35px;color:var(--muted);font-family:Cinz
         mouse.x = e.touches[0].clientX;
         mouse.y = e.touches[0].clientY;
       }
-    });
+    }, { passive: true });
 
     window.addEventListener('resize', resize);
 
