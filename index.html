@@ -522,7 +522,7 @@ footer{text-align:center;padding:25px 0 35px;color:var(--muted);font-family:Cinz
     <button class="tab-btn" id="btn-readings" onclick="switchTab('readings')">Divination Services</button>
     <button class="tab-btn" id="btn-origins" onclick="switchTab('origins')">Origins</button>
     <button class="tab-btn" id="btn-contact" onclick="switchTab('contact')">Contact & QR</button>
-    <button class="lock-kiosk-btn" onclick="returnToAttractor()">🔒 LOCK</button>
+    <button class="lock-kiosk-btn" onclick="returnToAttractor(event)">🔒 LOCK</button>
   </nav>
 </header>
 
@@ -862,6 +862,7 @@ footer{text-align:center;padding:25px 0 35px;color:var(--muted);font-family:Cinz
     resetKioskTimer();
   }
 
+  // Close modal if tapping outside the box
   window.addEventListener('click', (e) => {
     const modal = document.getElementById('booking-modal');
     if (e.target === modal) {
@@ -882,65 +883,79 @@ footer{text-align:center;padding:25px 0 35px;color:var(--muted);font-family:Cinz
         currentSlide = (currentSlide + 1) % slides.length;
         slides[currentSlide].classList.add('active');
       }
-    }, 4000);
+    }, 5000);
   }
 
   function stopSlideshow() {
-    if (slideInterval) {
-      clearInterval(slideInterval);
-      slideInterval = null;
-    }
+    if (slideInterval) clearInterval(slideInterval);
   }
 
-  // Kiosk Attractor & Auto-Lock Inactivity Timer (60s Limit)
+  // Kiosk Attractor & Inactivity Timer Logic
   let inactivityTimer = null;
   const INACTIVITY_LIMIT = 60000; 
 
   function dismissAttractor() {
     const attractor = document.getElementById('kiosk-attractor');
-    attractor.classList.add('hidden');
-    attractor.style.display = 'none'; // Hard toggle for iPadOS Safari
+    if (attractor) {
+      attractor.classList.add('hidden');
+      setTimeout(() => {
+        if (attractor.classList.contains('hidden')) {
+          attractor.style.display = 'none';
+        }
+      }, 600);
+    }
     stopSlideshow();
     resetKioskTimer();
   }
 
-  function returnToAttractor() {
+  function returnToAttractor(e) {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+
     const attractor = document.getElementById('kiosk-attractor');
-    attractor.style.display = 'flex';
-    setTimeout(() => {
+    if (attractor) {
+      attractor.style.display = 'flex';
+      void attractor.offsetWidth;
       attractor.classList.remove('hidden');
-    }, 20);
+    }
 
     switchTab('apparel');
     closeBooking();
+
+    currentSlide = 0;
+    slides.forEach((slide, idx) => {
+      slide.classList.toggle('active', idx === 0);
+    });
     startSlideshow();
-    if (inactivityTimer) clearTimeout(inactivityTimer);
+
+    clearTimeout(inactivityTimer);
   }
 
   function resetKioskTimer() {
-    if (inactivityTimer) clearTimeout(inactivityTimer);
-    
+    clearTimeout(inactivityTimer);
     const attractor = document.getElementById('kiosk-attractor');
-    if (attractor.classList.contains('hidden') || attractor.style.display === 'none') {
+    
+    if (attractor && attractor.classList.contains('hidden')) {
       inactivityTimer = setTimeout(() => {
         returnToAttractor();
       }, INACTIVITY_LIMIT);
     }
   }
 
-  // Safari touch event listeners
-  ['touchstart', 'click'].forEach(evt => {
-    document.addEventListener(evt, () => {
-      resetKioskTimer();
-    }, { passive: true });
+  // Touch & Pointer event bindings for iPadOS
+  ['touchstart', 'touchend', 'click', 'mousemove', 'scroll'].forEach(evtName => {
+    window.addEventListener(evtName, resetKioskTimer, { passive: true });
   });
 
-  // Start initial slideshow on page load
+  // Initialize Slideshow on Load
   startSlideshow();
 
   // Interactive Particle Canvas Background
   (function initSpaceCanvas() {
     const canvas = document.getElementById('space-canvas');
+    if (!canvas) return;
     const ctx = canvas.getContext('2d');
 
     let width, height;
